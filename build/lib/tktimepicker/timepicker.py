@@ -2,9 +2,11 @@ import tkinter
 
 from typing import Tuple
 from tkinter import ttk
+from tkinter import *
 from tktimepicker import basetimepicker
 from tktimepicker import constants
 from tktimepicker.spinlabel import SpinLabel, LabelGroup, PeriodLabel
+
 
 
 class AnalogPicker(tkinter.Frame):  # Creates the fully functional clock timepicker
@@ -137,9 +139,13 @@ class AnalogPicker(tkinter.Frame):  # Creates the fully functional clock timepic
 
 
 class SpinTimePickerOld(basetimepicker.SpinBaseClass):
-
-    def __init__(self, parent, orient=constants.HORIZONTAL):
+    
+    def __init__(self, parent, i_hr=1, i_min=0,i_p="AM", h_width=10, m_width=10, p_width=10, orient=constants.HORIZONTAL):
         super(SpinTimePickerOld, self).__init__(parent)
+        
+        self.h_width = h_width
+        self.m_width = m_width
+        self.p_width = p_width
 
         self.hour_type = constants.HOURS12
         self.orient = "top" if orient == constants.VERTICAL else "left"
@@ -148,22 +154,27 @@ class SpinTimePickerOld(basetimepicker.SpinBaseClass):
         reg24hrs = self.register(self.validate24hrs)
         regMin = self.register(self.validateMinutes)
 
-        self.period_var = tkinter.StringVar(self, value="a.m")
-        self.period_var.trace("w", self.validatePeriod)
+        if(i_p=="AM"):
+            self.period_var = tkinter.StringVar(self, value="a.m")
+            self.period_var.trace("w", self.validatePeriod)
+        elif(i_p=="PM"):
+            self.period_var = tkinter.StringVar(self, value="p.m")
+            self.period_var.trace("w", self.validatePeriod)
+        
 
-        self._12HrsTime = tkinter.Spinbox(self, increment=1, from_=1, to=12,
+        self._12HrsTime = tkinter.Spinbox(self, width=h_width, increment=1, from_=1, to=12, value=i_hr,
                                           validate="all", validatecommand=(reg12hrs, "%P"),
                                           command=lambda: self._12HrsTime.event_generate("<<Changed12Hrs>>"))
-
-        self._24HrsTime = tkinter.Spinbox(self, increment=1, from_=0, to=23,
+        self._24HrsTime = tkinter.Spinbox(self, width=h_width, increment=1, from_=0, to=23, value=i_hr,
                                           validate="all", validatecommand=(reg24hrs, "%P"),
                                           command=lambda: self._24HrsTime.event_generate("<<Changed24Hrs>>"))
 
-        self._minutes = tkinter.Spinbox(self, increment=1, from_=0, to=59,
+        self._minutes = tkinter.Spinbox(self, width=m_width, increment=1, from_=0, to=59, value=i_min,
+                                        buttonuprelief="flat", buttondownrelief="flat",
                                         validate="all", validatecommand=(regMin, "%P"),
                                         command=lambda: self._minutes.event_generate("<<ChangedMins>>"))
 
-        self._period = ttk.Combobox(self, values=["a.m", "p.m"], textvariable=self.period_var)
+        self._period = ttk.Combobox(self, width=p_width, values=["a.m", "p.m"], textvariable=self.period_var)
         self._period.bind("<<ComboboxSelected>>", lambda a: self._minutes.event_generate("<<ChangedPeriod>>"))
 
     def addHours12(self):
